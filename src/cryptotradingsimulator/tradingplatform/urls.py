@@ -8,4 +8,5 @@ urlpatterns = [
     path('trade', views.trade, name='trade'),
     path('portfolio', views.portfolio, name='portfolio'),
     path('following', views.following, name='following'),
+    path('news-feed/', views.news_feed, name='news-feed'),
 ]

@@ -1,5 +1,75 @@
-title {color: mediumpurple}
-body {background: lightgrey}
-body {font-family: Georgia}
-h1 {font-family: Tahoma}
-h2 {font-family: Tahoma}
+.App {
+    text-align: left;
+    border: 2px solid #282c34;
+    box-sizing: border-box;
+    background: lightgrey;
+    /* Changed background to light grey */
+    font-family: Georgia;
+    /* Changed font family to Georgia */
+}
+
+.App-header {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: left;
+    font-size: calc(5px + 1.7vmin);
+    color: white;
+}
+
+.message-list {
+    list-style: none;
+    padding: 0.1;
+}
+
+.message-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.message-content {
+    max-width: 50%;
+    font-weight: bold;
+}
+
+/* ... other styles ... */
+
+.title-link {
+    text-decoration: none;
+    color: mediumpurple;
+    /* Changed title link color to mediumpurple */
+}
+
+.time-box {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 5px;
+    background-color: #282c34;
+    color: #f7f7f7;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgb(255, 255, 255);
+}
+
+.news-feed h1 {
+    margin-left: 1rem;
+    font-family: Tahoma;
+    /* Changed font family to Tahoma */
+}
+
+/* ... other styles ... */
+
+h1,
+h2 {
+    font-family: Tahoma;
+    /* Changed h1 and h2 font family to Tahoma */
+}
+
+/* Add any additional styles from style.css that you wish to incorporate */

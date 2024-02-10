@@ -29,7 +29,8 @@ def index(request):
         platform_user = None
         open_positions = None
 
-    context = {'platform_user': platform_user, 'open_positions': open_positions, 'new_user': new_user}
+    context = {'platform_user': platform_user,
+               'open_positions': open_positions, 'new_user': new_user}
     return render(request, 'index.html', context)
 
 
@@ -50,7 +51,8 @@ def trade(request):
             messages.success(request, "Trade Executed Successfully. " + str(round(new_position.coin_amount, 2)) +
                              str(new_position.cryptocurrency) + " purchased for $" +
                              str(round(new_position.USD_value_of_purchase, 2)))
-            messages.success(request, "Check Your Portfolio for Updates on this Trade.")
+            messages.success(
+                request, "Check Your Portfolio for Updates on this Trade.")
             return HttpResponseRedirect("/trade")
     else:
         form = TradeForm
@@ -62,10 +64,13 @@ def portfolio(request):
     platform_user = PlatformUser.objects.filter(user=request.user.id)
     logged_in_user = platform_user[0]
     user_positions = Position.objects.filter(user=logged_in_user)
-    open_positions = user_positions.filter(closed_at=None).order_by('-created_at')
-    closed_positions = user_positions.filter(closed_at__isnull=False).order_by('-closed_at')
+    open_positions = user_positions.filter(
+        closed_at=None).order_by('-created_at')
+    closed_positions = user_positions.filter(
+        closed_at__isnull=False).order_by('-closed_at')
     for position in open_positions:
-        position.current_coin_value = coin_usd_exchange(position.coin_amount, str(position.cryptocurrency))
+        position.current_coin_value = coin_usd_exchange(
+            position.coin_amount, str(position.cryptocurrency))
         position.ROI = (position.current_coin_value -
                         position.USD_value_of_purchase) / position.USD_value_of_purchase * 100
         position.save()
@@ -76,8 +81,10 @@ def portfolio(request):
         sold_position = form.save(commit=False)
         sold_position.USD_value_of_sale = sold_position.current_coin_value
         sold_position.closed_at = datetime.datetime.now()
-        sold_position.PNL = sold_position.USD_value_of_sale - sold_position.USD_value_of_purchase
-        sold_position.ROI = sold_position.PNL / sold_position.USD_value_of_purchase * 100
+        sold_position.PNL = sold_position.USD_value_of_sale - \
+            sold_position.USD_value_of_purchase
+        sold_position.ROI = sold_position.PNL / \
+            sold_position.USD_value_of_purchase * 100
 
         new_balance = logged_in_user.balance + sold_position.USD_value_of_sale
         logged_in_user.balance = new_balance
@@ -91,7 +98,8 @@ def portfolio(request):
         messages.success(request, "Position Closed Successfully. " + str(round(sold_position.coin_amount, 2)) +
                          " " + str(sold_position.cryptocurrency) +
                          " sold for $" + str(round(sold_position.USD_value_of_sale, 2)))
-        messages.success(request, profit_loss_message + "ROI: " + str(round(sold_position.ROI, 2)) + "%")
+        messages.success(request, profit_loss_message +
+                         "ROI: " + str(round(sold_position.ROI, 2)) + "%")
         return HttpResponseRedirect("/portfolio")
     else:
         form = SellForm
@@ -112,3 +120,7 @@ def balance(request):
     if request.user.is_authenticated:
         platform_user = PlatformUser.objects.all()
     return render(request, 'balance.html', {'platform_user': platform_user})
+
+
+def news_feed(request):
+    return render(request, 'news-feed.html')

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}News Feed{% endblock %}
+
+{% block styles %}
+<style>
+    /* Include any additional CSS styles here */
+    .news-feed {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    /* You can add more styles specific to the news feed page here */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="app-header">
+    <h1>News Feed</h1>
+</div>
+<ul id="news-feed" class="news-feed">
+    <!-- News items will be appended here by JavaScript -->
+</ul>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'newsWebSocket.js' %}"></script>
+{% endblock %}
