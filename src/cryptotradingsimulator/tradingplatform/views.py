@@ -1,4 +1,5 @@
 import datetime
+import json
 from django.shortcuts import render
 from .models import PlatformUser, Position
 from .forms import TradeForm, SellForm
@@ -6,6 +7,18 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from .get_user_pnl_roi import get_user_all_time_pnl, get_user_all_time_roi
 from .live_coin_price import usd_coin_exchange, coin_usd_exchange
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import NewsItem
+from .serializers import NewsItemSerializer
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers import serialize
+from django.http import HttpResponse
+from .models import NewsItem
+
+
 
 
 # Create your views here.
@@ -123,4 +136,39 @@ def balance(request):
 
 
 def news_feed(request):
-    return render(request, 'news-feed.html')
+    news_items = NewsItem.objects.order_by('-time')[:10]
+    # Serialize the queryset directly to JSON
+    news_items_json = serialize('json', news_items)
+    return render(request, 'news-feed.html', {'initial_news_items': news_items_json})
+
+
+class LatestNews(APIView):
+    def get(self, request, format=None):
+        news_items = NewsItem.objects.order_by('-time')[:10]  # Get the latest 10 news items
+
+        # Note: If you need to manipulate the JSON fields in Python before sending them out,
+        # you would deserialize them here, but typically, this isn't needed just for serialization.
+        serializer = NewsItemSerializer(news_items, many=True)
+
+        return Response(serializer.data)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def save_news_item(request):
+    try:
+        # Parse the incoming JSON payload
+        news_data = json.loads(request.body)
+
+        # Use your DRF serializer to validate and deserialize the data
+        serializer = NewsItemSerializer(data=news_data)
+        if serializer.is_valid():
+            # Save the valid news item to the database
+            serializer.save()
+            return JsonResponse({"success": True, "message": "News item saved successfully."}, status=201)
+        else:
+            # Return errors if the data is not valid
+            return JsonResponse({"success": False, "errors": serializer.errors}, status=400)
+    except json.JSONDecodeError as e:
+        # Handle JSON parsing error
+        return JsonResponse({"success": False, "message": "Invalid JSON format."}, status=400)

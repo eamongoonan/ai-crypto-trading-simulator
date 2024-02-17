@@ -1,6 +1,8 @@
 from django.urls import path, include
 from . import views
+from .views import LatestNews
 from django.contrib import admin
+
 
 app_name = "tradingplatform"
 urlpatterns = [
@@ -9,4 +11,6 @@ urlpatterns = [
     path('portfolio', views.portfolio, name='portfolio'),
     path('following', views.following, name='following'),
     path('news-feed/', views.news_feed, name='news-feed'),
+    path('api/latest-news', LatestNews.as_view(), name='latest-news'),
+    path('api/news-items/', views.save_news_item, name='save_news_item'),
 ]

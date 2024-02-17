@@ -26,5 +26,11 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    // Define a global variable for the initial news items
+    var initialNewsItems = JSON.parse('{{ initial_news_items|safe }}');
+</script>
+
+</script>
 <script src="{% static 'newsWebSocket.js' %}"></script>
 {% endblock %}

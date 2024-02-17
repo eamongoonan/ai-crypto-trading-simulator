@@ -124,4 +124,12 @@ document.addEventListener('DOMContentLoaded', function () {
     ws.onclose = function () {
         console.log('WebSocket connection closed.');
     };
+
+    // Render initial news items on page load
+    if (initialNewsItems) {
+    initialNewsItems.forEach(item => {
+        addNewsItem(item); // Add each news item to the DOM
+    });
+}
+
 });

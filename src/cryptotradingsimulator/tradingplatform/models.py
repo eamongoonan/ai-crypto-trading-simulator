@@ -1,6 +1,7 @@
 from django.db import models
 from django.apps import AppConfig
 from django.conf import settings
+import json
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import *
@@ -42,3 +43,41 @@ class Position(models.Model):
     closed_at = models.DateTimeField(blank=True, null=True)
     ROI = models.FloatField(blank=True, null=True)
     PNL = models.FloatField(blank=True, null=True)
+
+
+class NewsItem(models.Model):
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    icon = models.URLField(blank=True, null=True)
+    image = models.URLField(blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    time = models.DateTimeField()
+    requireInteraction = models.BooleanField(default=False)
+    type = models.CharField(max_length=100, blank=True, null=True)
+    info = models.TextField(blank=True, null=True)  # JSON as a string
+    actions = models.TextField(blank=True, null=True)  # JSON as a string
+    suggestions = models.TextField(blank=True, null=True)  # JSON as a string
+    coin = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.title
+
+    # Helper methods to handle JSON serialization/deserialization
+    def set_info(self, data):
+        self.info = json.dumps(data)
+
+    def get_info(self):
+        return json.loads(self.info) if self.info else None
+
+    def set_actions(self, data):
+        self.actions = json.dumps(data)
+
+    def get_actions(self):
+        return json.loads(self.actions) if self.actions else None
+
+    def set_suggestions(self, data):
+        self.suggestions = json.dumps(data)
+
+    def get_suggestions(self):
+        return json.loads(self.suggestions) if self.suggestions else None
