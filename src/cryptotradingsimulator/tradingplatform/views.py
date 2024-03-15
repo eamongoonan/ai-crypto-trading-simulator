@@ -7,6 +7,12 @@ from django.http import HttpResponseRedirect
 from .get_user_pnl_roi import get_user_all_time_pnl, get_user_all_time_roi
 from .live_coin_price import usd_coin_exchange, coin_usd_exchange
 
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
+from .models import NewsItem
+
 
 # Create your views here.
 
@@ -123,4 +129,21 @@ def balance(request):
 
 
 def news_feed(request):
-    return render(request, 'news-feed.html')
+    news_items = NewsItem.objects.all().order_by('-time')  # Assuming 'time' is your timestamp field
+    # Convert each news item into a dictionary format that can be easily rendered in the template
+    news_items_json = [item_to_dict(item) for item in news_items]
+    return render(request, 'news-feed.html', {'news_items': json.dumps(news_items_json)})
+
+
+def item_to_dict(item):
+    """Utility function to convert a NewsItem instance into a dictionary."""
+    return {
+        'title': item.title,
+        'icon': item.icon,
+        'source': item.source,
+        'url': item.url,
+        'link': item.link,
+        'time': item.time.strftime('%Y-%m-%d %H:%M:%S'),  # Adjust the format as needed
+        'body': item.body,
+        'image': item.image
+    }

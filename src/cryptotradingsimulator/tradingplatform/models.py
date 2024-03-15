@@ -42,3 +42,16 @@ class Position(models.Model):
     closed_at = models.DateTimeField(blank=True, null=True)
     ROI = models.FloatField(blank=True, null=True)
     PNL = models.FloatField(blank=True, null=True)
+
+class NewsItem(models.Model):
+    title = models.CharField(max_length=255)
+    icon = models.URLField(blank=True, null=True)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    url = models.URLField(blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+    time = models.DateTimeField()
+    body = models.TextField(blank=True, null=True)
+    image = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.title

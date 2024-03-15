@@ -6,13 +6,12 @@
 
 {% block styles %}
 <style>
-    /* Include any additional CSS styles here */
+    /* Additional CSS styles */
     .news-feed {
         list-style-type: none;
         padding: 0;
     }
-
-    /* You can add more styles specific to the news feed page here */
+    /* More styles specific to the news feed page */
 </style>
 {% endblock %}
 
@@ -26,5 +25,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script type="text/javascript">
+    // Correctly ensures that preloadedNewsItems is a JS object from the Django template variable
+    var preloadedNewsItems = JSON.parse('{{ news_items|safe }}');
+</script>
 <script src="{% static 'newsWebSocket.js' %}"></script>
 {% endblock %}

@@ -108,14 +108,48 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     ws.onmessage = function (event) {
-        console.log('WebSocket message received:', event.data); // Log received data for debugging
-        try {
-            const message = JSON.parse(event.data);
-            addNewsItem(message);
-        } catch (e) {
-            console.error('Error parsing message data:', e);
-        }
+    console.log('WebSocket message received:', event.data); // Log received data for debugging
+    try {
+        const message = JSON.parse(event.data);
+        addNewsItem(message); // Add the news item to the UI
+        saveNewsItem(message); // Send the news item to the server for saving
+    } catch (e){
+        console.error('Error parsing message data:', e);
+    }
     };
+
+        function saveNewsItem(news) {
+    fetch('/save-news-item/', { // Adjust the URL as needed
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') // Function to get CSRF token from cookies
+        },
+        body: JSON.stringify(news)
+    })
+    .then(response => response.json())
+    .then(data => console.log('Success:', data))
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+    preloadedNewsItems.forEach(newsItem => addNewsItem(newsItem));
+
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
     ws.onerror = function (error) {
         console.log('WebSocket error:', error);
@@ -124,4 +158,5 @@ document.addEventListener('DOMContentLoaded', function () {
     ws.onclose = function () {
         console.log('WebSocket connection closed.');
     };
+
 });
