@@ -9,4 +9,5 @@ urlpatterns = [
     path('portfolio', views.portfolio, name='portfolio'),
     path('following', views.following, name='following'),
     path('news-feed/', views.news_feed, name='news-feed'),
+    path('save-news-item/', views.save_news_item, name='save_news_item'),
 ]

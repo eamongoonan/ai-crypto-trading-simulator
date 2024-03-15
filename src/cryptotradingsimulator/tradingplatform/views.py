@@ -1,4 +1,5 @@
 import datetime
+import json
 from django.shortcuts import render
 from .models import PlatformUser, Position
 from .forms import TradeForm, SellForm
@@ -6,12 +7,12 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from .get_user_pnl_roi import get_user_all_time_pnl, get_user_all_time_roi
 from .live_coin_price import usd_coin_exchange, coin_usd_exchange
-
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from .models import NewsItem
+from datetime import datetime
+
 
 
 # Create your views here.
@@ -133,6 +134,31 @@ def news_feed(request):
     # Convert each news item into a dictionary format that can be easily rendered in the template
     news_items_json = [item_to_dict(item) for item in news_items]
     return render(request, 'news-feed.html', {'news_items': json.dumps(news_items_json)})
+
+
+@require_http_methods(["POST"])
+def save_news_item(request):
+    try:
+        data = json.loads(request.body)
+
+        # Convert the timestamp from milliseconds to seconds
+        timestamp_seconds = data['time'] / 1000.0
+        parsed_time = datetime.utcfromtimestamp(timestamp_seconds)
+
+        news_item = NewsItem.objects.create(
+            title=data['title'],
+            icon=data.get('icon', ''),
+            source=data.get('source', ''),
+            url=data.get('url', ''),
+            link=data.get('link', ''),
+            time=parsed_time,  # Use the parsed datetime object here
+            body=data.get('body', ''),
+            image=data.get('image', '')
+        )
+
+        return JsonResponse({"status": "success", "id": news_item.id})
+    except Exception as e:
+        return JsonResponse({"status": "error", "error": str(e)}, status=400)
 
 
 def item_to_dict(item):
