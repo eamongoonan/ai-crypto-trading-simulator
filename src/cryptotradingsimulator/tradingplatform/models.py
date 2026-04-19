@@ -16,7 +16,7 @@ class CryptoCoin(models.Model):
 
 class PlatformUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    balance = models.PositiveIntegerField(default=7000)
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=7000.00)
     ROI = models.FloatField(default=0)
     PNL = models.FloatField(default=0)
 
@@ -34,7 +34,7 @@ def create_platform_user(sender, instance, created, **kwargs):
 class Position(models.Model):
     user = models.ForeignKey(PlatformUser, on_delete=models.PROTECT,)
     cryptocurrency = models.ForeignKey(CryptoCoin, on_delete=models.PROTECT, )
-    USD_value_of_purchase = models.PositiveIntegerField('Purchase Value', default=0)
+    USD_value_of_purchase = models.DecimalField('Purchase Value', max_digits=12, decimal_places=2, default=0)
     current_coin_value = models.FloatField(blank=True, null=True)
     USD_value_of_sale = models.FloatField(blank=True, null=True)
     coin_amount = models.FloatField(default=0)
