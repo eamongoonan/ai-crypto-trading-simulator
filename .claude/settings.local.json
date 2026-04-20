@@ -3,8 +3,7 @@
     "allow": [
       "Bash(python manage.py makemigrations tradingplatform)",
       "Bash(pip install *)",
-      "Bash(python manage.py check)",
-      "Bash(python -c \"import ast, sys; files = ['tradingplatform/views.py','tradingplatform/ai_chatbot.py','tradingplatform/urls.py']; [print\\(f\\) or ast.parse\\(open\\(f\\).read\\(\\)\\) for f in files]; print\\('OK'\\)\")"
+      "Bash(python manage.py check)"
     ]
   }
 }
