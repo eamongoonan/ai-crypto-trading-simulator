@@ -1,127 +1,134 @@
 document.addEventListener('DOMContentLoaded', function () {
     const newsFeedUl = document.getElementById('news-feed');
+    const wsToken = document.getElementById('news-ws-token')?.dataset.token || '';
+
+    const SENTIMENT_COLORS = {
+        BULLISH: { bg: '#d4edda', border: '#28a745', text: '#155724', icon: '↑' },
+        BEARISH: { bg: '#f8d7da', border: '#dc3545', text: '#721c24', icon: '↓' },
+        NEUTRAL: { bg: '#e2e3e5', border: '#6c757d', text: '#383d41', icon: '●' },
+    };
+
+    function makeSentimentBadge(sentiment, reason, coins) {
+        const s = SENTIMENT_COLORS[sentiment] || SENTIMENT_COLORS.NEUTRAL;
+        const coinTags = coins && coins.length
+            ? coins.map(c => `<span style="background:#343a40;color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;margin-right:3px;">${c}</span>`).join('')
+            : '';
+        return `
+          <div style="margin-top:8px;padding:6px 10px;border-radius:5px;border-left:4px solid ${s.border};background:${s.bg};color:${s.text};font-size:13px;">
+            <strong>${s.icon} ${sentiment}</strong>&nbsp;&nbsp;${reason || ''}
+            ${coinTags ? `<div style="margin-top:4px;">${coinTags}</div>` : ''}
+          </div>`;
+    }
+
+    function fetchSentiment(title, body, container) {
+        const loadingEl = document.createElement('div');
+        loadingEl.style.cssText = 'margin-top:8px;font-size:12px;color:#888;font-style:italic;';
+        loadingEl.textContent = 'Analysing sentiment…';
+        container.appendChild(loadingEl);
+
+        fetch('/ai/sentiment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({ title, body }),
+        })
+            .then(r => r.json())
+            .then(data => {
+                loadingEl.outerHTML = makeSentimentBadge(
+                    data.sentiment || 'NEUTRAL',
+                    data.reason || '',
+                    data.coins || []
+                );
+            })
+            .catch(() => {
+                loadingEl.remove();
+            });
+    }
+
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[2]) : '';
+    }
 
     function addNewsItem(news) {
-        if (!news.title) {
-            console.error('News item missing title:', news);
-            return; // Skip this news item if it doesn't have a title
-        }
+        if (!news.title) return;
 
-        // Create the news item container
         const newsItem = document.createElement('div');
-        newsItem.style.display = 'flex';
-        newsItem.style.marginBottom = '20px';
-        newsItem.style.backgroundColor = '#f5f5f5';
-        newsItem.style.padding = '10px';
-        newsItem.style.borderRadius = '5px';
+        newsItem.className = 'news-item';
 
-        // Add icon to the left
         if (news.icon) {
             const iconImg = document.createElement('img');
             iconImg.src = news.icon;
-            iconImg.style.width = '50px';
-            iconImg.style.height = '50px';
-            iconImg.style.marginRight = '10px';
-            iconImg.style.objectFit = 'cover';
-            iconImg.style.borderRadius = '50%';
+            iconImg.className = 'news-icon';
             newsItem.appendChild(iconImg);
         }
 
-        // Create the content container
-        const contentContainer = document.createElement('div');
-        contentContainer.style.flexGrow = '1';
-        contentContainer.style.display = 'flex';
-        contentContainer.style.flexDirection = 'column';
-        contentContainer.style.overflow = 'hidden'; // Prevents content from overflowing
-        contentContainer.style.maxWidth = 'calc(100% - 60px)'; // Adjust based on your layout, assumes 50px image + 10px margin
+        const content = document.createElement('div');
+        content.className = 'news-content';
 
-        // Add title with hyperlink
         const title = document.createElement('a');
         title.textContent = news.title;
-        // Check if the source is "Blogs", if so, use 'url', otherwise, use 'link'
-        title.href = (news.source === "Blogs" && news.url) ? news.url : (news.link ? news.link : '#');
-        title.target = "_blank"; // Open in a new tab
-        title.style.color = 'green';
-        title.style.fontWeight = 'bold';
-        title.style.fontSize = '16px';
-        title.style.textDecoration = 'none';
-        contentContainer.appendChild(title);
+        title.href = (news.source === 'Blogs' && news.url) ? news.url : (news.link || '#');
+        title.target = '_blank';
+        title.className = 'news-title';
+        content.appendChild(title);
 
-        // Add time and date under the title
         if (news.time) {
             const time = document.createElement('div');
             time.textContent = new Date(news.time).toLocaleString();
-            time.style.color = 'black';
-            time.style.marginTop = '5px';
-            time.style.fontSize = '12px';
-            time.style.fontWeight = 'bold'; // Make bold
-            contentContainer.appendChild(time);
+            time.className = 'news-time';
+            content.appendChild(time);
         }
 
-        // Add body if present
         if (news.body) {
             const body = document.createElement('p');
             body.textContent = news.body;
-            body.style.color = 'black';
-            body.style.marginTop = '10px';
-            body.style.fontWeight = 'bold'; // Make bold
-            contentContainer.appendChild(body);
-            body.style.overflowWrap = 'break-word';
+            body.className = 'news-body';
+            content.appendChild(body);
         }
 
-        newsItem.appendChild(contentContainer);
+        newsItem.appendChild(content);
 
-        // Add image to the right if present
         if (news.image) {
             const image = document.createElement('img');
             image.src = news.image;
-            image.style.width = '100px'; // Initial width
-            image.style.height = 'auto';
-            image.style.marginLeft = '10px';
-            image.style.borderRadius = '5px';
-            image.style.cursor = 'pointer'; // Change cursor on hover to indicate clickability
+            image.className = 'news-image';
             image.addEventListener('click', () => {
-                // Toggle expanded size on click
-                if (image.style.width === '100px') {
-                    image.style.width = '200px'; // Example expanded size
-                } else {
-                    image.style.width = '100px'; // Collapse back to original size
-                }
+                image.style.width = image.style.width === '200px' ? '100px' : '200px';
             });
             newsItem.appendChild(image);
         }
 
-        // Insert the new news item at the top of the news feed
-        if (newsFeedUl.firstChild) {
-            newsFeedUl.insertBefore(newsItem, newsFeedUl.firstChild);
-        } else {
-            // If there are no items in the list, just append the new item
-            newsFeedUl.appendChild(newsItem);
-        }
+        newsFeedUl.insertAdjacentElement('afterbegin', newsItem);
+        fetchSentiment(news.title, news.body || '', content);
     }
 
     const ws = new WebSocket('wss://news.treeofalpha.com/ws');
 
     ws.onopen = function () {
-        console.log('WebSocket connection established.');
-        ws.send(JSON.stringify({ command: 'login', data: '43dcd1a581f7913d74da6e0cc5c90e8a22c5b55614dac9d9e2bf93b9d24a1808' }));
-    };
-
-    ws.onmessage = function (event) {
-        console.log('WebSocket message received:', event.data); // Log received data for debugging
-        try {
-            const message = JSON.parse(event.data);
-            addNewsItem(message);
-        } catch (e) {
-            console.error('Error parsing message data:', e);
+        if (wsToken) {
+            ws.send(JSON.stringify({ command: 'login', data: wsToken }));
         }
     };
 
-    ws.onerror = function (error) {
-        console.log('WebSocket error:', error);
+    ws.onmessage = function (event) {
+        try {
+            addNewsItem(JSON.parse(event.data));
+        } catch (e) {
+            console.error('Error parsing news message:', e);
+        }
+    };
+
+    ws.onerror = function () {
+        const errEl = document.createElement('div');
+        errEl.className = 'alert alert-warning';
+        errEl.textContent = 'News feed connection failed. Please refresh to retry.';
+        newsFeedUl.appendChild(errEl);
     };
 
     ws.onclose = function () {
-        console.log('WebSocket connection closed.');
+        console.log('News WebSocket closed.');
     };
 });

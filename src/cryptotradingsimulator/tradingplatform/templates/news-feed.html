@@ -1,28 +1,56 @@
 {% extends "base.html" %}
-
 {% load static %}
 
 {% block title %}News Feed{% endblock %}
 
-{% block styles %}
-<style>
-    /* Include any additional CSS styles here */
-    .news-feed {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    /* You can add more styles specific to the news feed page here */
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="app-header">
-    <h1>News Feed</h1>
-</div>
-<ul id="news-feed" class="news-feed">
-    <!-- News items will be appended here by JavaScript -->
-</ul>
+<style>
+  #news-feed { list-style: none; padding: 0; }
+  .news-item {
+    display: flex;
+    margin-bottom: 18px;
+    background: #fff;
+    padding: 14px;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  }
+  .news-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .news-content { flex: 1; min-width: 0; }
+  .news-title {
+    color: #1a7a1a;
+    font-weight: bold;
+    font-size: 15px;
+    text-decoration: none;
+    display: block;
+    word-break: break-word;
+  }
+  .news-title:hover { text-decoration: underline; }
+  .news-time { color: #555; font-size: 12px; margin-top: 4px; }
+  .news-body { color: #333; font-size: 13px; margin-top: 8px; word-break: break-word; }
+  .news-image {
+    width: 100px; height: auto;
+    margin-left: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    flex-shrink: 0;
+    align-self: flex-start;
+    transition: width .2s;
+  }
+  .ai-badge-loading { color: #888; font-size: 12px; font-style: italic; margin-top: 6px; }
+</style>
+
+<h1>News Feed <small class="text-muted" style="font-size:16px;">with AI Sentiment</small></h1>
+<p class="text-muted">Live crypto news — each item is analysed by Claude AI for market sentiment.</p>
+
+<span id="news-ws-token" data-token="{{ news_ws_token }}" style="display:none;"></span>
+
+<ul id="news-feed"></ul>
 {% endblock %}
 
 {% block scripts %}
