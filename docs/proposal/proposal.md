@@ -60,19 +60,24 @@ Through this initiative, we aim to equip users with the tools and insights they 
 
 ### Achievements
 
-The project will offer a suite of advanced functionalities tailored for novice traders. 
-At its core, it will feature an AI-driven sentiment analysis tool that evaluates the news feed, 
-providing users with insights into market sentiment. 
+**Implemented:**
 
-Users can access live candlestick and line charts for cryptocurrencies with the highest trading volumes. 
-Trading functionalities are comprehensive, allowing users to buy and sell cryptocurrencies, set stop losses, 
-and utilise various technical indicators. Another standout feature is the live leaderboard, 
-showcasing top-performing professional traders. 
+- **Paper trading** — users can buy and sell cryptocurrencies against a $10,000 virtual starting balance, with real-time prices sourced from Binance
+- **Portfolio tracking** — open and closed positions are tracked with per-trade PNL, ROI, and all-time aggregate metrics
+- **AI sentiment analysis** — each article in the live news feed is analyzed by Anthropic's Claude model, returning a BULLISH / BEARISH / NEUTRAL label and a one-sentence explanation
+- **Live news feed** — streaming cryptocurrency news delivered via WebSocket
+- **Price charts** — candlestick and line charts across multiple timeframes
+- **Trader following** — browse professional trader data via the RapidAPI integration
+- **User accounts** — registration, login, and per-user portfolio isolation
 
-This allows novice traders to emulate their strategies or gain insights into their preferred cryptocurrencies. 
-Additionally, an AI assistant chatbot will be available, where the user can make enquiries and learn more about the crypto market. 
-The primary target audience for this platform will be beginner traders looking to simulate trades and gain market insights through AI assistance before transitioning to full-time trading. 
-However, seasoned traders can also benefit, especially those keen on experimenting with new trading strategies or refreshing their existing knowledge.
+**Planned but not implemented:**
+
+- *React frontend* — Django's built-in templating system was used instead; React added unnecessary complexity for this scope
+- *Twitter/X live feed for sentiment* — API access restrictions made this infeasible; replaced with a WebSocket news feed and Claude-based analysis
+- *AI chatbot for education* — deprioritized in favor of completing core trading and sentiment features
+- *Live leaderboard of professional traders* — the following page provides trader data but not a ranked leaderboard
+- *Stop-loss orders* — not implemented
+- *Technical indicators (open interest, volume, long/short ratio)* — not implemented
 
 
 ### Justification
@@ -81,12 +86,12 @@ The platform we're developing addresses a significant gap in the cryptocurrency 
 
 
 ### Programming language(s)
-Python: This will be used for the backend (Django).
-React: This will be used for the front end.
+Python: Used for the backend (Django).
+HTML/CSS/JavaScript: Used for the frontend via Django templates (React was planned but not adopted — Django’s templating system proved sufficient for the scope).
 
 
 ### Programming tools / Tech stack
-We’re planning on using Visual studio code, pycharm, gitlab, websockets
+Visual Studio Code, PyCharm, Git, WebSockets, SQLite
 
 ### Hardware
 N/A

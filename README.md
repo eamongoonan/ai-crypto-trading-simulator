@@ -1,30 +1,54 @@
-# CA400 template repo
+# Cryptocurrency Trading Simulator
 
-This is a template for CA400 projects.
+A Django web application that lets users practice cryptocurrency trading with virtual money, live market prices, and AI-powered news sentiment analysis.
 
-## 1. Create your repo
+## Features
 
-One person from your project team should fork this repo, then add other teammates as project members on GitLab.
+- **Paper trading** — buy and sell cryptocurrencies using a $10,000 virtual starting balance, with no real money at risk
+- **Live prices** — real-time cryptocurrency prices fetched from Binance
+- **Portfolio tracking** — view open and closed positions with per-trade and all-time PNL/ROI
+- **Live news feed** — streaming cryptocurrency news via WebSocket
+- **AI sentiment analysis** — each news article is analyzed by Claude (Anthropic) and labeled BULLISH, BEARISH, or NEUTRAL with a one-sentence explanation
+- **Candlestick/line charts** — price charts across multiple timeframes
+- **Trader following** — browse professional trader data via RapidAPI
+- **User accounts** — registration, login, and per-user isolated portfolios
 
-## 2. Name your repo appropriately
+## Tech Stack
 
-The name of your project must be of the form `2024-ca400-XXXXXXX`, where "`XXXXXXX`"
-should be replaced with your usernames (e.g. `2024-ca400-sblott-pclarke`).
-**Note** that the year should be set as appropriate to your year of study. For example, in the
-2022/2023 academic year this would change to '2023-ca400-sblott-pclarke'), 
-in the 2023/2024 academic year this would change to '2024-ca400-sblott-pclarke'), etc. 
+- **Backend:** Python 3.8, Django 4.1
+- **Database:** SQLite
+- **AI:** [ProsusAI/FinBERT](https://huggingface.co/ProsusAI/finbert) via the Hugging Face Inference API (free, no API key required)
+- **External APIs:** Binance (prices), RapidAPI (trader data), WebSocket news feed
 
-It is the *name of your repo* which matters (not the name of your project).
+## Quick Start
 
-You can change the name of your repo on GitLab under:
+See [SETUP.md](SETUP.md) for full installation and configuration instructions.
 
-- Settings / General / Advanced / Change path
+```bash
+cd src/cryptotradingsimulator
+pip install -r requirements.txt
+cp .env.example .env  # fill in your API keys
+python manage.py migrate
+python manage.py runserver
+```
 
-It looks like this:
+## Project Structure
 
-![change-repo-path](./res/repo-change-path.png "Change repo path.")
+```
+src/cryptotradingsimulator/
+├── cryptotradingsimulator/   # Django project settings & URLs
+├── members/                  # User registration & authentication
+├── tradingplatform/          # Core trading logic, models, views, AI
+│   ├── models.py             # PlatformUser, Position
+│   ├── views.py              # trade, portfolio, news_feed, sentiment_analysis
+│   ├── ai_sentiment.py       # Claude-powered news sentiment
+│   └── live_coin_price.py    # Binance price fetching
+└── templates/                # Django HTML templates
+```
 
-You should replace all of this file with a README describing your own project.
+## Authors
 
-## Additional resources
+- Eamon Goonan (19765759)
+- Mudiaga Jerry Dortie (19339753)
 
+CA400 Year 4 Project — School of Computing, Dublin City University
