@@ -1,61 +1,86 @@
 {% extends "base.html" %}
-{% block title %}Homepage{% endblock %}
+{% block title %}Dashboard{% endblock %}
 {% block content %}
 
-<style>
-      .footer {
-      position: fixed;
-      left: 0;
-      bottom: 0;
-      width: 100%;
-      background-color: #BEBEBE;
-      color: white;
-      text-align: center;
-}
-</style>
-
 {% if user.is_authenticated %}
+  <section class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-lg-8 mb-3 mb-lg-0">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <h1 class="display-5 font-weight-bold mb-2">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+            {% if new_user %}
+              <p class="lead text-secondary">You have a fresh starting balance and can begin trading right away.</p>
+            {% else %}
+              <p class="lead text-secondary">Review your open positions, manage risk, and follow market sentiment across live crypto news.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 text-white summary-card">
+          <div class="card-body">
+            <h5 class="card-title text-white mb-3">Quick stats</h5>
+            <p class="mb-2"><strong>Open trades:</strong> {{ open_positions.count }}</p>
+            <p class="mb-2"><strong>Balance:</strong> ${{ platform_user.0.balance|floatformat:2 }}</p>
+            <p class="mb-0"><strong>All-time ROI:</strong> {{ platform_user.0.ROI|default:'0.00'|floatformat:2 }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-{% load static %}
-<body>
-<link rel="stylesheet" type="text/css" href="static/stylesheet.css" />
-
-<h1>Dashboard</h1>
-<hr/>
-
-{% if new_user %}
-<p>Hello, <b>{{ user.first_name }}</b>. Looks like you're new here.</p>
-<p>We have given you $7000 to begin your cryptocurrency trading journey.</p>
-<p>Why not head to the "Trade" page, and see if you can make an investment?</p>
-{% else %}
-<p>Hello <b>{{ user.first_name }}</b>, Welcome back to CryptoSim.</p>
-{% endif %}
-
-<div class="card" style="width: 25rem;">
-  <div class="card-header">
-    <b>{{ user.first_name }}'s Stats</b> {{ position.cryptocurrency }}
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body">
+          <h5 class="card-title">Start a trade</h5>
+          <p class="text-muted">Buy crypto, watch market movement, and manage your positions from one place.</p>
+          <a href="{% url 'tradingplatform:trade' %}" class="btn btn-primary">Make a trade</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body">
+          <h5 class="card-title">Your portfolio</h5>
+          <p class="text-muted">Track your open and closed positions with clear ROI and performance details.</p>
+          <a href="{% url 'tradingplatform:portfolio' %}" class="btn btn-outline-primary">View portfolio</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body">
+          <h5 class="card-title">Market news</h5>
+          <p class="text-muted">Read live crypto news with free sentiment analysis for every headline.</p>
+          <a href="{% url 'tradingplatform:news-feed' %}" class="btn btn-outline-primary">See news</a>
+        </div>
+      </div>
+    </div>
   </div>
-  {% for user in platform_user %}
-  <ul class="list-group list-group-flush">
-    <li class="list-group-item">You have <b>{{ open_positions.count }}</b> open trades.</li>
-      <li class="list-group-item">All-time PNL (USD): <b> {{ user.PNL|floatformat:2 }} </b></li>
-      <li class="list-group-item">All-time ROI: <b>{{ user.ROI|floatformat:2 }}%</b></li>
-    </ul>
-  {% endfor %}
+
+  {% if new_user %}
+    <div class="alert alert-info rounded shadow-sm" role="alert">
+      Hello, <strong>{{ user.first_name|default:user.username }}</strong>. You have been given initial capital to begin your cryptocurrency trading journey. Head to the Trade page to get started.
+    </div>
+  {% else %}
+    <div class="alert alert-success rounded shadow-sm" role="alert">
+      Welcome back, <strong>{{ user.first_name|default:user.username }}</strong>. Your simulator is ready and your last positions are waiting in Portfolio.
+    </div>
+  {% endif %}
 
 {% else %}
-<h1>About Us...</h1>
-<hr/>
-<p>Hello, beginner trader! Welcome to CryptoSim. <br>
-    We are a simulated Cryptocurrency Trading Platform. <br>
-    We offer a risk-free environment for you to experiment with cryptocurrency investment strategies. <br> <br>
-Please register or login to start your crypto-trading journey.</p>
-
+  <section class="text-center py-5">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 720px;">
+      <div class="card-body">
+        <h1 class="display-4 mb-3">Welcome to CryptoSim</h1>
+        <p class="lead text-secondary mb-4">A risk-free cryptocurrency trading simulator with live prices, portfolio tracking, and free sentiment-powered news.</p>
+        <a class="btn btn-primary btn-lg mr-2" href="{% url 'members:register' %}">Create an account</a>
+        <a class="btn btn-outline-secondary btn-lg" href="{% url 'members:login' %}">Login</a>
+      </div>
+    </div>
+  </section>
 {% endif %}
-
-
-<div class="footer">
-  <p>CryptoSim: "The Cryptocurrency Trading Simulator"</p>
-</div>
 
 {% endblock %}

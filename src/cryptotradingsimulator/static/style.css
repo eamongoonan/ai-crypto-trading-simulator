@@ -1,75 +1,144 @@
-.App {
-    text-align: left;
-    border: 2px solid #282c34;
-    box-sizing: border-box;
-    background: lightgrey;
-    /* Changed background to light grey */
-    font-family: Georgia;
-    /* Changed font family to Georgia */
+﻿body.app-body {
+    background: #f4f7fb;
+    color: #25303b;
+    min-height: 100vh;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
+.main-content {
+    min-height: calc(100vh - 180px);
+}
+
+.navbar-logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.navbar .nav-link {
+    color: rgba(255,255,255,.85);
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: #ffffff;
+}
+
+.balance-pill {
+    background: rgba(255,255,255,.95);
+    color: #24292f;
+    font-weight: 600;
+}
+
+.app-footer {
+    background: #ffffff;
+    border-top: 1px solid rgba(0,0,0,.05);
+}
+
+.card {
+    border: none;
+    border-radius: 1rem;
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: none;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, #2a79c7 0%, #0b4d91 100%);
+}
+
+.hero-card {
+    border-radius: 1rem;
+}
+
+.chart-panel {
+    min-height: 420px;
+    width: 100%;
+}
+
+.news-feed {
     display: flex;
     flex-direction: column;
-    align-items: left;
-    justify-content: left;
-    font-size: calc(5px + 1.7vmin);
-    color: white;
+    gap: 1rem;
 }
 
-.message-list {
-    list-style: none;
-    padding: 0.1;
-}
-
-.message-item {
+.news-item {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 16px 38px rgba(15, 23, 42, .08);
 }
 
-.message-content {
-    max-width: 50%;
-    font-weight: bold;
+.news-content {
+    flex: 1;
+    min-width: 0;
 }
 
-/* ... other styles ... */
-
-.title-link {
+.news-title {
+    color: #1f3a7a;
+    font-weight: 700;
+    font-size: 1.05rem;
     text-decoration: none;
-    color: mediumpurple;
-    /* Changed title link color to mediumpurple */
 }
 
-.time-box {
-    position: fixed;
-    top: 0;
-    right: 0;
-    padding: 5px;
-    background-color: #282c34;
-    color: #f7f7f7;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgb(255, 255, 255);
+.news-title:hover {
+    color: #0c1e44;
+    text-decoration: none;
 }
 
-.news-feed h1 {
-    margin-left: 1rem;
-    font-family: Tahoma;
-    /* Changed font family to Tahoma */
+.news-time,
+.news-body {
+    color: #546778;
 }
 
-/* ... other styles ... */
-
-h1,
-h2 {
-    font-family: Tahoma;
-    /* Changed h1 and h2 font family to Tahoma */
+.news-image {
+    width: 120px;
+    max-width: 120px;
+    border-radius: 1rem;
+    cursor: pointer;
+    object-fit: cover;
+    transition: transform .2s ease;
 }
 
-/* Add any additional styles from style.css that you wish to incorporate */
+.news-image:hover {
+    transform: translateY(-2px);
+}
+
+.card .form-control,
+.form-control {
+    border-radius: .75rem;
+    border: 1px solid rgba(46, 55, 72, .12);
+    box-shadow: none;
+}
+
+.btn-primary {
+    border-radius: .75rem;
+}
+
+.trader-card {
+    border-radius: 1rem;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+@media (max-width: 767px) {
+    .navbar-text {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .navbar-text a,
+    .navbar-text span {
+        margin-bottom: .5rem;
+    }
+}

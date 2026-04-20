@@ -9,6 +9,17 @@ class TradeForm(ModelForm):
     class Meta:
         model = Position
         fields = ('cryptocurrency', 'USD_value_of_purchase')
+        widgets = {
+            'cryptocurrency': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'USD_value_of_purchase': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '1',
+                'placeholder': 'Enter USD amount',
+            }),
+        }
 
 
 class SellForm(ModelForm):
