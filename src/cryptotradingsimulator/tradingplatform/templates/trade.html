@@ -101,8 +101,7 @@
                     });
                 }
 
-                // Set the interval to update the chart every 60 seconds
-                //window.currentInterval = setInterval(updateChart, 6000);
+                window.currentInterval = setInterval(updateChart, 30000);
             });
         }
 
@@ -115,8 +114,7 @@
             let selectedCurrency = e.target.selectedOptions[0].text;
             window.curr = selectedCurrency;
             chartData = [];
-            //clearInterval(window.currentInterval);
-            // clear current chart
+            clearInterval(window.currentInterval);
             document.getElementById('chart_div').innerHTML="";
             drawChart(selectedCurrency);
 
