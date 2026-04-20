@@ -14,7 +14,7 @@ def login_user(request):
             return redirect('tradingplatform:index')
 
         else:
-            messages.success(request, "There Was An Error Logging In, Try Again...")
+            messages.error(request, "Invalid username or password. Please try again.")
             return redirect('members:login')
 
     else:
@@ -36,7 +36,7 @@ def register_user(request):
             password = form.cleaned_data['password1']
             user = authenticate(username=username, password=password)
             login(request, user)
-            messages.success(request, "Registeration Successful. You Are Logged In.")
+            messages.success(request, "Registration successful. Welcome to CryptoSim!")
             return redirect('tradingplatform:index')
     else:
         form = RegisterUserForm()

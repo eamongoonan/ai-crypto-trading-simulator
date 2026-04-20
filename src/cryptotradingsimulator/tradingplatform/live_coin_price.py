@@ -1,24 +1,19 @@
 import requests
 
 
-# defining key/request url
-def get_coin_price(coin_symbol):
-    key = "https://api.binance.com/api/v3/ticker/price?symbol=" + coin_symbol + "USDT"
-    # requesting data from url
-    data = requests.get(key)
-    data = data.json()
-    # print(f"{data['symbol']} price is {data['price']}")
-    return data['price']
+def get_coin_price(coin_symbol: str) -> float:
+    url = f"https://api.binance.com/api/v3/ticker/price?symbol={coin_symbol}USDT"
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        return float(response.json()['price'])
+    except (requests.RequestException, KeyError, ValueError) as e:
+        raise RuntimeError(f"Could not fetch price for {coin_symbol}: {e}")
 
 
-get_coin_price("BTC")
+def usd_coin_exchange(dollar_amount: float, coin_symbol: str) -> float:
+    return dollar_amount / get_coin_price(coin_symbol)
 
 
-def usd_coin_exchange(dollar_amount, coin_symbol):
-    coin_amount = dollar_amount / float(get_coin_price(coin_symbol))
-    return coin_amount
-
-
-def coin_usd_exchange(coin_amount, coin_symbol):
-    dollar_amount = float(get_coin_price(coin_symbol)) * coin_amount
-    return dollar_amount
+def coin_usd_exchange(coin_amount: float, coin_symbol: str) -> float:
+    return get_coin_price(coin_symbol) * coin_amount
