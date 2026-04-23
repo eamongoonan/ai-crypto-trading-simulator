@@ -128,17 +128,6 @@ def portfolio(request):
 
 
 @login_required
-def following(request):
-    logged_in_user = get_object_or_404(PlatformUser, user=request.user)
-    import os
-    context = {
-        'platform_user': [logged_in_user],
-        'rapidapi_key': os.environ.get('RAPIDAPI_KEY', ''),
-    }
-    return render(request, 'following.html', context)
-
-
-@login_required
 def leaderboard(request):
     logged_in_user = get_object_or_404(PlatformUser, user=request.user)
     top_users = PlatformUser.objects.select_related('user').order_by('-ROI')[:50]
