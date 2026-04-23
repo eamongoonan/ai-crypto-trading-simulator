@@ -7,9 +7,33 @@
     <h1 class="h3 mb-1">Portfolio</h1>
     <p class="text-muted mb-0">Review your positions and close trades when the time is right.</p>
   </div>
-  <div class="text-muted mt-3 mt-md-0">Open positions: <strong>{{ open_positions.count }}</strong></div>
+  <div class="d-flex align-items-center mt-3 mt-md-0">
+    <span class="text-muted mr-3">Open positions: <strong>{{ open_positions.count }}</strong></span>
+    <form action="/reset-account/" method="POST"
+          onsubmit="return confirm('Reset your account? This will delete all positions and reset your balance to $10,000. This cannot be undone.')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-secondary btn-sm">Reset Account</button>
+    </form>
+  </div>
 </div>
 
+<!-- Portfolio Performance Chart -->
+<section class="mb-5">
+  <div class="card shadow-sm border-0">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Portfolio Performance</strong>
+      <small class="text-muted" id="perf-subtitle">Total value over time</small>
+    </div>
+    <div class="card-body">
+      <canvas id="performanceChart" height="80"></canvas>
+      <p id="no-data-msg" class="text-muted text-center py-4" style="display:none">
+        No performance history yet. Make a trade to start tracking your portfolio value.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Open Positions -->
 <section class="mb-5">
   <h2 class="h5 mb-3">Open Positions</h2>
   <p class="text-muted">Analyse or sell your active trades.</p>
@@ -28,12 +52,26 @@
               {% endif %}
             </div>
             <div class="card-body">
-              <ul class="list-unstyled mb-4">
+              <ul class="list-unstyled mb-3">
                 <li><strong>Coin amount:</strong> {{ position.coin_amount|floatformat:6 }}</li>
                 <li><strong>Purchased for:</strong> ${{ position.USD_value_of_purchase }}</li>
                 <li><strong>Current value:</strong> ${{ position.current_coin_value|floatformat:2 }}</li>
                 <li><strong>Purchase date:</strong> {{ position.created_at }}</li>
               </ul>
+              {% if position.stop_loss or position.take_profit %}
+                <div class="mb-3">
+                  {% if position.stop_loss %}
+                    <span class="badge badge-danger mr-1">
+                      SL ${{ position.stop_loss }}
+                    </span>
+                  {% endif %}
+                  {% if position.take_profit %}
+                    <span class="badge badge-success">
+                      TP ${{ position.take_profit }}
+                    </span>
+                  {% endif %}
+                </div>
+              {% endif %}
               <form action="" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="position_id" value="{{ position.id }}">
@@ -51,6 +89,7 @@
   {% endif %}
 </section>
 
+<!-- Closed Positions -->
 <section>
   <h2 class="h5 mb-3">Closed Positions</h2>
   <p class="text-muted">Track past trades and evaluate performance.</p>
@@ -69,11 +108,15 @@
               {% endif %}
             </div>
             <div class="card-body">
-              <ul class="list-unstyled mb-4">
+              <ul class="list-unstyled mb-0">
                 <li><strong>Coin amount:</strong> {{ position.coin_amount|floatformat:6 }}</li>
                 <li><strong>Purchased for:</strong> ${{ position.USD_value_of_purchase }}</li>
                 <li><strong>Sold for:</strong> ${{ position.USD_value_of_sale|floatformat:2 }}</li>
-                <li><strong>PNL:</strong> ${{ position.PNL|floatformat:2 }}</li>
+                <li><strong>PNL:</strong>
+                  <span class="{% if position.PNL > 0 %}text-success{% else %}text-danger{% endif %}">
+                    ${{ position.PNL|floatformat:2 }}
+                  </span>
+                </li>
                 <li><strong>Closed:</strong> {{ position.closed_at }}</li>
               </ul>
             </div>
@@ -87,4 +130,96 @@
     </div>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  fetch('/portfolio/history/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var history = data.history;
+      var canvas = document.getElementById('performanceChart');
+      var noDataMsg = document.getElementById('no-data-msg');
+
+      if (!history || history.length < 2) {
+        canvas.style.display = 'none';
+        noDataMsg.style.display = 'block';
+        return;
+      }
+
+      var labels = history.map(function(h) {
+        return new Date(h.date).toLocaleString('en-GB', {
+          month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+      });
+      var values = history.map(function(h) { return h.value; });
+      var startValue = values[0];
+      var latestValue = values[values.length - 1];
+      var change = latestValue - startValue;
+      var changePct = ((change / startValue) * 100).toFixed(2);
+      var isPositive = change >= 0;
+
+      document.getElementById('perf-subtitle').textContent =
+        (isPositive ? '+' : '') + changePct + '% overall  ·  $' +
+        latestValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' current value';
+
+      var borderColor = isPositive ? '#28a745' : '#dc3545';
+      var bgColor = isPositive ? 'rgba(40,167,69,0.08)' : 'rgba(220,53,69,0.08)';
+
+      new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Portfolio Value (USD)',
+            data: values,
+            borderColor: borderColor,
+            backgroundColor: bgColor,
+            fill: true,
+            tension: 0.15,
+            pointRadius: history.length <= 30 ? 4 : 2,
+            pointHoverRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          interaction: {mode: 'index', intersect: false},
+          plugins: {
+            legend: {display: false},
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  return '$' + ctx.parsed.y.toLocaleString('en-US', {
+                    minimumFractionDigits: 2, maximumFractionDigits: 2
+                  });
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: function(v) {
+                  return '$' + v.toLocaleString('en-US', {
+                    minimumFractionDigits: 0, maximumFractionDigits: 0
+                  });
+                }
+              },
+              grid: {color: 'rgba(0,0,0,0.05)'}
+            },
+            x: {
+              ticks: {maxTicksLimit: 8, maxRotation: 0},
+              grid: {display: false}
+            }
+          }
+        }
+      });
+    })
+    .catch(function() {
+      document.getElementById('performanceChart').style.display = 'none';
+      document.getElementById('no-data-msg').style.display = 'block';
+    });
+</script>
 {% endblock %}

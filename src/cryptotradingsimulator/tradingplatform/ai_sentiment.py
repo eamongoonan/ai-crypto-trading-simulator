@@ -8,6 +8,11 @@ LABEL_MAP = {
     "positive": "BULLISH",
     "negative": "BEARISH",
     "neutral": "NEUTRAL",
+    # HF inference API sometimes returns LABEL_X instead of text labels
+    # ProsusAI/finbert id2label: {0: positive, 1: negative, 2: neutral}
+    "label_0": "BULLISH",
+    "label_1": "BEARISH",
+    "label_2": "NEUTRAL",
 }
 
 _TICKERS = [
@@ -38,18 +43,35 @@ def _extract_coins(text: str) -> list:
     return sorted(found)
 
 
-_BULLISH_WORDS = {"surge", "surges", "rally", "rallies", "soar", "soars", "bullish", "gains", "gain",
-                  "rises", "rise", "high", "highs", "breakout", "adoption", "buy", "buying", "up",
-                  "record", "milestone", "boost", "boosted", "positive", "growth", "recover", "recovery"}
-_BEARISH_WORDS = {"crash", "crashes", "drop", "drops", "dump", "dumps", "bearish", "loss", "losses",
-                  "falls", "fall", "low", "lows", "ban", "banned", "hack", "hacked", "sell", "selling",
-                  "down", "decline", "declines", "fear", "warning", "risk", "risks", "negative", "collapse"}
+_BULLISH_WORDS = {
+    "surge", "surges", "surging", "rally", "rallies", "rallying", "soar", "soars", "soaring",
+    "bullish", "gain", "gains", "gaining", "rise", "rises", "rising", "rose", "high", "highs",
+    "breakout", "adoption", "buy", "buying", "bought", "up", "upside", "uptrend", "record",
+    "milestone", "boost", "boosts", "boosted", "positive", "growth", "growing", "recover",
+    "recovery", "recovering", "outperform", "outperforms", "upgrade", "upgraded", "approval",
+    "approved", "approves", "launch", "launches", "launched", "partnership", "integrates",
+    "integration", "accumulate", "accumulation", "inflow", "inflows", "ath", "all-time",
+    "expand", "expands", "expansion", "strong", "strength", "momentum", "opportunities",
+    "opportunity", "profit", "profits", "profitability", "invest", "investment", "bullrun",
+}
+_BEARISH_WORDS = {
+    "crash", "crashes", "crashing", "drop", "drops", "dropping", "dropped", "dump", "dumps",
+    "dumping", "bearish", "loss", "losses", "losing", "fall", "falls", "falling", "fell",
+    "low", "lows", "ban", "banned", "banning", "hack", "hacked", "hacking", "exploit",
+    "exploited", "sell", "selling", "sold", "selloff", "down", "downside", "downtrend",
+    "decline", "declines", "declining", "fear", "warning", "warns", "risk", "risks",
+    "negative", "collapse", "collapses", "collapsing", "fraud", "scam", "ponzi", "lawsuit",
+    "sued", "sues", "investigation", "probe", "fine", "fined", "penalty", "penalties",
+    "outflow", "outflows", "liquidation", "liquidations", "liquidated", "correction",
+    "rejected", "rejects", "rejection", "weak", "weakness", "concern", "concerns",
+    "vulnerability", "breach", "breached", "stolen", "theft", "bankrupt", "bankruptcy",
+}
 
 
 def _keyword_sentiment(text: str) -> dict:
-    words = set(re.findall(r'\b\w+\b', text.lower()))
-    bull = len(words & _BULLISH_WORDS)
-    bear = len(words & _BEARISH_WORDS)
+    words = re.findall(r'\b\w+\b', text.lower())
+    bull = sum(1 for w in words if w in _BULLISH_WORDS)
+    bear = sum(1 for w in words if w in _BEARISH_WORDS)
     if bull > bear:
         return "BULLISH", "Keyword analysis (set HF_API_TOKEN for FinBERT)"
     if bear > bull:

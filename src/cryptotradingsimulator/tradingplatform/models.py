@@ -3,7 +3,7 @@ from django.apps import AppConfig
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from django.db.models.signals import *
+from django.db.models.signals import post_save
 
 
 class CryptoCoin(models.Model):
@@ -16,7 +16,7 @@ class CryptoCoin(models.Model):
 
 class PlatformUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=12, decimal_places=2, default=7000.00)
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=10000.00)
     ROI = models.FloatField(default=0)
     PNL = models.FloatField(default=0)
 
@@ -42,3 +42,14 @@ class Position(models.Model):
     closed_at = models.DateTimeField(blank=True, null=True)
     ROI = models.FloatField(blank=True, null=True)
     PNL = models.FloatField(blank=True, null=True)
+    stop_loss = models.DecimalField(max_digits=14, decimal_places=4, blank=True, null=True)
+    take_profit = models.DecimalField(max_digits=14, decimal_places=4, blank=True, null=True)
+
+
+class PortfolioSnapshot(models.Model):
+    user = models.ForeignKey(PlatformUser, on_delete=models.CASCADE, related_name='snapshots')
+    total_value = models.FloatField()
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['recorded_at']

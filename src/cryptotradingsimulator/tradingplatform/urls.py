@@ -10,4 +10,9 @@ urlpatterns = [
     path('leaderboard', views.leaderboard, name='leaderboard'),
     path('news-feed/', views.news_feed, name='news-feed'),
     path('ai/sentiment/', views.sentiment_analysis, name='sentiment'),
+    path('chatbot/', views.chatbot, name='chatbot'),
+    path('chatbot/api/', views.chatbot_api, name='chatbot-api'),
+    path('portfolio/history/', views.portfolio_history, name='portfolio-history'),
+    path('reset-account/', views.reset_account, name='reset-account'),
+    path('api/price/<str:symbol>/', views.coin_price_api, name='coin-price'),
 ]

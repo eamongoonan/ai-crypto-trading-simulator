@@ -3,121 +3,178 @@
 
 {% block content %}
 
-<h1>Trade</h1>
-<hr/>
-<p>Select a Cryptocurrency, and how much of your money you would like to invest.</p>
-<br/>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
+  <div>
+    <h1 class="h3 mb-1">Trade</h1>
+    <p class="text-muted mb-0">Select a cryptocurrency and enter your investment amount.</p>
+  </div>
+</div>
 
-<form action="" method="POST">
-    {% csrf_token %}
+<div class="row">
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow-sm border-0">
+      <div class="card-header"><strong>New Position</strong></div>
+      <div class="card-body">
+        <form action="" method="POST">
+          {% csrf_token %}
 
-    {{ form }}
+          <div class="form-group">
+            <label for="id_cryptocurrency">Cryptocurrency</label>
+            {{ form.cryptocurrency }}
+          </div>
 
-    <input type="submit" value="Buy"
-           class = "btn btn-secondary">
+          <div class="form-group">
+            <label for="id_USD_value_of_purchase">Amount (USD)</label>
+            {{ form.USD_value_of_purchase }}
+            <small class="form-text text-muted">
+              Balance: ${{ platform_user.0.balance|floatformat:2 }}
+            </small>
+          </div>
 
-</form>
-<div id="chart_div"></div>
+          <div id="current-price-display" class="alert alert-secondary py-2 small" style="display:none">
+            Current price: <strong id="current-price-value">—</strong>
+          </div>
 
+          <hr class="my-3"/>
+          <p class="text-muted small mb-2"><strong>Auto-close orders</strong> (optional)</p>
 
+          <div class="form-group">
+            <label for="id_stop_loss" class="small">
+              Stop Loss <span class="text-danger">▼</span>
+              <span class="text-muted font-weight-normal">— price per coin (USD)</span>
+            </label>
+            {{ form.stop_loss }}
+            <small class="form-text text-muted">Auto-sells if price drops to this level.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="id_take_profit" class="small">
+              Take Profit <span class="text-success">▲</span>
+              <span class="text-muted font-weight-normal">— price per coin (USD)</span>
+            </label>
+            {{ form.take_profit }}
+            <small class="form-text text-muted">Auto-sells if price rises to this level.</small>
+          </div>
+
+          <button type="submit" class="btn btn-success btn-block mt-3">Buy</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8 mb-4">
+    <div class="card shadow-sm border-0">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong id="chart-title">Price Chart</strong>
+        <small class="text-muted">1-minute candles · updates every 30s</small>
+      </div>
+      <div class="card-body p-2">
+        <div id="chart_div" style="min-height: 380px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}
+
 {% block scripts %}
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
-    <script type="text/javascript">
-        google.charts.load('current', {
-            'packages': ['corechart']
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script type="text/javascript">
+  google.charts.load('current', {'packages': ['corechart']});
+
+  var chartData = [];
+  var currentInterval = null;
+  window.curr = 'BTC';
+
+  function drawChart(curr) {
+    curr = curr || window.curr;
+    document.getElementById('chart-title').textContent = curr + '/USD — Price Chart';
+    var exchange = new ccxt.binance();
+
+    exchange.fetchOHLCV(curr + '/USDT', '1m').then(function(ohlcv) {
+      chartData = [];
+      for (var i = 0; i < ohlcv.length; i++) {
+        chartData.push([new Date(ohlcv[i][0]), ohlcv[i][4]]);
+      }
+
+      // Show current price
+      if (ohlcv.length > 0) {
+        var lastPrice = ohlcv[ohlcv.length - 1][4];
+        document.getElementById('current-price-value').textContent =
+          '$' + lastPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8});
+        document.getElementById('current-price-display').style.display = 'block';
+      }
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('datetime', 'Time');
+      data.addColumn('number', 'Price');
+      data.addRows(chartData);
+
+      var options = {
+        title: curr + '/USD',
+        legend: 'none',
+        width: '100%',
+        height: 380,
+        colors: ['#28a745'],
+        lineWidth: 1.7,
+        backgroundColor: 'transparent',
+        chartArea: {left: 80, right: 20, top: 30, bottom: 40},
+        hAxis: {textStyle: {fontSize: 11}},
+        vAxis: {textStyle: {fontSize: 11}, format: '$#,###.##'},
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+
+      if (currentInterval) clearInterval(currentInterval);
+      currentInterval = setInterval(function() {
+        exchange.fetchOHLCV(window.curr + '/USDT', '1m').then(function(ohlcv) {
+          if (!ohlcv.length) return;
+          var timestamp = new Date(ohlcv[ohlcv.length - 1][0]);
+          var close = ohlcv[ohlcv.length - 1][4];
+          chartData.push([timestamp, close]);
+          data.addRow([timestamp, close]);
+
+          // Update price display
+          document.getElementById('current-price-value').textContent =
+            '$' + close.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8});
+
+          var updatedOptions = {
+            title: window.curr + '/USD',
+            legend: 'none',
+            width: '100%',
+            height: 380,
+            colors: ['#28a745'],
+            lineWidth: 1.7,
+            backgroundColor: 'transparent',
+            chartArea: {left: 80, right: 20, top: 30, bottom: 40},
+            hAxis: {textStyle: {fontSize: 11}},
+            vAxis: {textStyle: {fontSize: 11}, format: '$#,###.##'},
+          };
+          chart.draw(data, updatedOptions);
         });
-        //google.charts.setOnLoadCallback(drawChart);
+      }, 30000);
+    }).catch(function(err) {
+      document.getElementById('chart_div').innerHTML =
+        '<div class="alert alert-warning m-3">Chart unavailable for this coin. Try selecting another.</div>';
+    });
+  }
 
-        var chartData = [];
-        window.curr = 'BTC';
-        function drawChart(curr='BTC') {
-            // Initialize the Binance exchange object
-            var exchange = new ccxt.binance();
+  google.charts.setOnLoadCallback(function() {
+    var sel = document.getElementById('id_cryptocurrency');
+    var initialCoin = sel.selectedOptions[0].text;
+    window.curr = initialCoin;
+    drawChart(initialCoin);
+  });
 
-            // Get the historical data
-            exchange.fetchOHLCV(`${curr}/USDT`, '1m').then((ohlcv) => {
-                // Extract the timestamp and close price
-                for (var i = 0; i < ohlcv.length; i++) {
-                    chartData.push([new Date(ohlcv[i][0]), ohlcv[i][4]]);
-                    console.log([new Date(ohlcv[i][0]), ohlcv[i][4]]);
-                }
-
-                // Create the data table
-                var data = new google.visualization.DataTable();
-                data.addColumn('datetime', 'Time');
-                data.addColumn('number', 'Price');
-                data.addRows(chartData);
-
-                // Set the chart options
-                var options = {
-                    title: `${curr}/USD`,
-                    legend: 'none',
-                    width: 900,
-                    height: 500,
-                    colors: ['green'],
-                    lineWidth: 1.7,
-                    backgroundColor: 'transparent'
-                };
-
-                // Create the chart object
-                var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-
-                // Draw the chart
-                chart.draw(data, options);
-
-                // Define the function to update the chart
-                function updateChart() {
-                    exchange.fetchOHLCV(`${window.curr}/USDT`, '1m').then((ohlcv) => {
-                        // Extract the timestamp and close price
-                        var timestamp = new Date(ohlcv[ohlcv.length - 1][0]);
-                        var close = ohlcv[ohlcv.length - 1][4];
-
-                        // Add the new data point to the chart data
-                        chartData.push([timestamp, close]);
-
-                        // Update the data table
-                        data.addRow([timestamp, close]);
-                        console.log([timestamp, close]);
-
-                        // Set the chart options
-                        var options = {
-                            title: `${window.curr}/USD`,
-                            legend: 'none',
-                            width: 900,
-                            height: 500,
-                            colors: ['green'],
-                            lineWidth: 1.7,
-                            backgroundColor: 'transparent'
-
-                        };
-                        // Create the chart object
-                        //var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-
-                        // Draw the chart
-                        chart.draw(data, options);
-                    });
-                }
-
-                window.currentInterval = setInterval(updateChart, 30000);
-            });
-        }
-
-        // get the id for the <select> tag
-        let selTag = document.getElementById("id_cryptocurrency");
-        selTag.addEventListener('change', (e)=>{
-
-            console.log(e);
-            console.log(e.target.selectedOptions[0].text)
-            let selectedCurrency = e.target.selectedOptions[0].text;
-            window.curr = selectedCurrency;
-            chartData = [];
-            clearInterval(window.currentInterval);
-            document.getElementById('chart_div').innerHTML="";
-            drawChart(selectedCurrency);
-
-        })
-    </script>
+  document.getElementById('id_cryptocurrency').addEventListener('change', function(e) {
+    var selectedCurrency = e.target.selectedOptions[0].text;
+    window.curr = selectedCurrency;
+    if (currentInterval) clearInterval(currentInterval);
+    document.getElementById('chart_div').innerHTML = '';
+    document.getElementById('current-price-display').style.display = 'none';
+    drawChart(selectedCurrency);
+  });
+</script>
 {% endblock %}
