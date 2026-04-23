@@ -19,6 +19,12 @@ try:
 except ImportError:
     pass
 
+try:
+    import dj_database_url
+    _HAS_DJ_DATABASE_URL = True
+except ImportError:
+    _HAS_DJ_DATABASE_URL = False
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get(
@@ -50,6 +56,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,14 +88,19 @@ WSGI_APPLICATION = 'cryptotradingsimulator.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+# Set DATABASE_URL env var to use PostgreSQL (e.g. on Railway/Render/Heroku).
+# Falls back to SQLite for local development.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+_DATABASE_URL = os.environ.get('DATABASE_URL')
+if _DATABASE_URL and _HAS_DJ_DATABASE_URL:
+    DATABASES = {'default': dj_database_url.parse(_DATABASE_URL, conn_max_age=600)}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 
 # Password validation
@@ -125,13 +137,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_DIR = os.path.join (BASE_DIR, "static")
-STATIC_ROOT = os.path.join (BASE_DIR,'static files')
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-STATIC_URL = '/static/'  # path to read css with local (probably)
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, "static"),
-    ]
+    os.path.join(BASE_DIR, "static"),
+]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

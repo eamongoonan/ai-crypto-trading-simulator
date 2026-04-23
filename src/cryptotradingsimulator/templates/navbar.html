@@ -12,9 +12,10 @@
         {% if user.is_authenticated %}
           <li class="nav-item"><a class="nav-link" href="{% url 'tradingplatform:trade' %}">Trade</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'tradingplatform:portfolio' %}">Portfolio</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'tradingplatform:following' %}">Following</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'tradingplatform:leaderboard' %}">Leaderboard</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'tradingplatform:news-feed' %}">News Feed</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'tradingplatform:chatbot' %}">AI Assistant</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'tradingplatform:following' %}">Pro Traders</a></li>
         {% endif %}
       </ul>
 

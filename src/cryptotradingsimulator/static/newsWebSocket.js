@@ -105,30 +105,51 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchSentiment(news.title, news.body || '', content);
     }
 
-    const ws = new WebSocket('wss://news.treeofalpha.com/ws');
+    const placeholder = document.getElementById('news-placeholder');
 
-    ws.onopen = function () {
-        if (wsToken) {
-            ws.send(JSON.stringify({ command: 'login', data: wsToken }));
-        }
-    };
+    function removePlaceholder() {
+        if (placeholder) placeholder.remove();
+    }
 
-    ws.onmessage = function (event) {
-        try {
-            addNewsItem(JSON.parse(event.data));
-        } catch (e) {
-            console.error('Error parsing news message:', e);
-        }
-    };
+    let reconnectDelay = 2000;
+    let reconnectTimer = null;
 
-    ws.onerror = function () {
-        const errEl = document.createElement('div');
-        errEl.className = 'alert alert-warning';
-        errEl.textContent = 'News feed connection failed. Please refresh to retry.';
-        newsFeedUl.appendChild(errEl);
-    };
+    function connect() {
+        const ws = new WebSocket('wss://news.treeofalpha.com/ws');
 
-    ws.onclose = function () {
-        console.log('News WebSocket closed.');
-    };
+        ws.onopen = function () {
+            reconnectDelay = 2000;
+            if (wsToken) {
+                ws.send(JSON.stringify({ command: 'login', data: wsToken }));
+            }
+        };
+
+        ws.onmessage = function (event) {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.title) {
+                    removePlaceholder();
+                    addNewsItem(data);
+                }
+            } catch (e) {
+                console.error('Error parsing news message:', e);
+            }
+        };
+
+        ws.onerror = function () {
+            if (placeholder) {
+                placeholder.className = 'alert alert-warning';
+                placeholder.textContent = 'News feed connection failed — retrying…';
+            }
+        };
+
+        ws.onclose = function () {
+            reconnectTimer = setTimeout(() => {
+                reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+                connect();
+            }, reconnectDelay);
+        };
+    }
+
+    connect();
 });

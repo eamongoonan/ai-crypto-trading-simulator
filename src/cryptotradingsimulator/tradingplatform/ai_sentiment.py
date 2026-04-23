@@ -2,7 +2,7 @@ import os
 import re
 import requests
 
-HF_API_URL = "https://api-inference.huggingface.co/models/ProsusAI/finbert"
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/ProsusAI/finbert"
 
 LABEL_MAP = {
     "positive": "BULLISH",
@@ -38,18 +38,38 @@ def _extract_coins(text: str) -> list:
     return sorted(found)
 
 
+_BULLISH_WORDS = {"surge", "surges", "rally", "rallies", "soar", "soars", "bullish", "gains", "gain",
+                  "rises", "rise", "high", "highs", "breakout", "adoption", "buy", "buying", "up",
+                  "record", "milestone", "boost", "boosted", "positive", "growth", "recover", "recovery"}
+_BEARISH_WORDS = {"crash", "crashes", "drop", "drops", "dump", "dumps", "bearish", "loss", "losses",
+                  "falls", "fall", "low", "lows", "ban", "banned", "hack", "hacked", "sell", "selling",
+                  "down", "decline", "declines", "fear", "warning", "risk", "risks", "negative", "collapse"}
+
+
+def _keyword_sentiment(text: str) -> dict:
+    words = set(re.findall(r'\b\w+\b', text.lower()))
+    bull = len(words & _BULLISH_WORDS)
+    bear = len(words & _BEARISH_WORDS)
+    if bull > bear:
+        return "BULLISH", "Keyword analysis (set HF_API_TOKEN for FinBERT)"
+    if bear > bull:
+        return "BEARISH", "Keyword analysis (set HF_API_TOKEN for FinBERT)"
+    return "NEUTRAL", "Keyword analysis (set HF_API_TOKEN for FinBERT)"
+
+
 def analyze_news_sentiment(title: str, body: str = "") -> dict:
     text = (title + (" " + body if body else ""))[:512]
+    coins = _extract_coins(text)
 
-    headers = {}
     token = os.environ.get("HF_API_TOKEN")
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if not token:
+        sentiment, reason = _keyword_sentiment(text)
+        return {"sentiment": sentiment, "reason": reason, "coins": coins}
 
     try:
         resp = requests.post(
             HF_API_URL,
-            headers=headers,
+            headers={"Authorization": f"Bearer {token}"},
             json={"inputs": text},
             timeout=15,
         )
@@ -67,8 +87,10 @@ def analyze_news_sentiment(title: str, body: str = "") -> dict:
         confidence = round(best["score"] * 100, 1)
         reason = f"FinBERT confidence: {confidence}%"
     except requests.exceptions.Timeout:
-        sentiment, reason = "NEUTRAL", "Sentiment service timed out"
+        sentiment, reason = _keyword_sentiment(text)
+        reason = "FinBERT timed out — " + reason
     except Exception:
-        sentiment, reason = "NEUTRAL", "Sentiment analysis unavailable"
+        sentiment, reason = _keyword_sentiment(text)
+        reason = "FinBERT unavailable — " + reason
 
-    return {"sentiment": sentiment, "reason": reason, "coins": _extract_coins(text)}
+    return {"sentiment": sentiment, "reason": reason, "coins": coins}

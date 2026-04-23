@@ -1,7 +1,7 @@
 import os
 import requests
 
-HF_API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/HuggingFaceH4/zephyr-7b-beta"
 
 _SYSTEM_PROMPT = (
     "You are CryptoSim AI, an educational assistant for beginner cryptocurrency traders. "
@@ -22,16 +22,15 @@ def _build_prompt(messages: list[dict]) -> str:
 
 
 def chat(messages: list[dict]) -> str:
-    headers = {}
     token = os.environ.get("HF_API_TOKEN")
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if not token:
+        return "AI Assistant is not configured. Add HF_API_TOKEN to your .env file (free at huggingface.co/settings/tokens)."
 
     prompt = _build_prompt(messages)
     try:
         resp = requests.post(
             HF_API_URL,
-            headers=headers,
+            headers={"Authorization": f"Bearer {token}"},
             json={
                 "inputs": prompt,
                 "parameters": {

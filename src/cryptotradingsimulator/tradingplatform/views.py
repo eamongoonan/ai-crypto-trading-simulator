@@ -139,6 +139,17 @@ def following(request):
 
 
 @login_required
+def leaderboard(request):
+    logged_in_user = get_object_or_404(PlatformUser, user=request.user)
+    top_users = PlatformUser.objects.select_related('user').order_by('-ROI')[:50]
+    context = {
+        'platform_user': [logged_in_user],
+        'top_users': top_users,
+    }
+    return render(request, 'leaderboard.html', context)
+
+
+@login_required
 def balance(request):
     logged_in_user = get_object_or_404(PlatformUser, user=request.user)
     return render(request, 'balance.html', {'platform_user': [logged_in_user]})
